@@ -6,14 +6,14 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE, echo=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, fig.width = 4, fig.height = 4)
+```
 
+```{r DataCleaning, echo = FALSE}
 ########################################################
 #            Working Notes
 #
-# Use dplyr to select out the columns whose names begin with X.
-# Also take out D1_7 - this was a radio button beside the open ended 
-# response so has no meaningful data
+
 
 # Drop out email addresses
 
@@ -23,11 +23,7 @@ knitr::opts_chunk$set(echo = TRUE)
 # them in some way.
 #
 #
-# Filter out rows which have rubbish responses:
-# ResponseID = R_3GvvOBTj4XHfyeM (prostitute, invalid responses)
-# Another case says they have 150 dependants
-# Look at cases with 0 for importance ratings (C1)
-#
+# D1_x vars have odd values (13, 14, etc). Need recoding.
 
 
 
@@ -41,6 +37,9 @@ datafile3 <- "B4 and B5.csv"
 library(dplyr)
 library(readr) 
 library(ggplot2)
+library(psych)   # Creating scales and calculating reliability and other descriptives.
+library(car)     # Used for the recode function.
+
 # read_CSV in readr is better than R's built-in read.csv function; see Peng
 # msdr.pdf p. 14.
 
@@ -85,7 +84,7 @@ varNames <- c("ResponseID", "ResponseSet", "Name", "ExtDataRef", "Email",
               "F4_6_Mentor", "F4_7_Mentor", "F4_8_Mentor", "F5_1_DevAss", 
               "F5_2_DevAss", "F5_3_DevAss", "F5_4_DevAss", "F6_1_ProcJust", 
               "F6_2_ProcJust", "F6_3_ProcJust", "F6_4_ProcJust", 
-              "F6_5_ProcJust", "F7_1_DistJust", "F7_2__DistJust", 
+              "F6_5_ProcJust", "F7_1_DistJust", "F7_2_DistJust", 
               "F7_3_DistJust", "F7_4_DistJust", "F7_5_DistJust", "F8_1_Empower",
               "F8_2_Empower", "F8_3_Empower", "F8_4_Empower", "F9_1_DevAss", 
               "F9_2_DevAss", "F9_3_DevAss", "F10_1_Turnover", "F10_2_Turnover", 
@@ -104,6 +103,7 @@ varNames <- c("ResponseID", "ResponseSet", "Name", "ExtDataRef", "Email",
               "H5_Recomm", "H6_RecommTXT", "H7_IncOrgPerf", "H8_IncOrgPerfTXT", 
               "H9_AddAnything", "H10_ParticInIv", "H11_GetCopy", "H12_Email", 
               NA, "Lat", "Long", "LocAcc", NA)
+
 
 # I've specified column types for the Deps columns. Some people used 
 # leading zeroes when entering number of dependents, and by default, 
@@ -164,25 +164,176 @@ responses <- fulldata %>%
         select(-ends_with("C5_8_CarAdv")) %>% 
         select(-ends_with("E6_8_GeogMob")) %>% 
         select(-ends_with("H1_8_OrgFacil")) %>% 
-        select(-ends_with("AKRegion")) %>% 
         filter(ResponseID != "R_3GvvOBTj4XHfyeM") %>% 
         filter(ResponseID != "R_RKpGHXWPmVQx3Sp") %>% 
         filter(ResponseID != "R_2sbE1CxaFo6uCCG")
-
 # Invalid responses dropped with filter
+
+# Recode weird values in items - editing changes to Qualtrics survey
+# means that some scales had gaps (e.g., 1-4, 6 instead of 1-5)
+responses$C2_1_WLB <- car::recode(responses$C2_1_WLB,"13=1 ; 14=2 ; 15=3 ; 16=4 ; 17=5; else=NA")
+responses$C2_2_WLB <- car::recode(responses$C2_2_WLB,"13=1 ; 14=2 ; 15=3 ; 16=4 ; 17=5; else=NA")
+responses$C2_3_WLB <- car::recode(responses$C2_3_WLB,"13=1 ; 14=2 ; 15=3 ; 16=4 ; 17=5; else=NA")
+responses$C2_4_WLB <- car::recode(responses$C2_4_WLB,"13=1 ; 14=2 ; 15=3 ; 16=4 ; 17=5; else=NA")
+responses$C2_5_WLB <- car::recode(responses$C2_5_WLB,"13=1 ; 14=2 ; 15=3 ; 16=4 ; 17=5; else=NA")
+responses$C3_Aspire <- car::recode(responses$C3_Aspire,"1=1 ; 2=2 ; 3=3 ; 4=4 ; 5=5 ; 6=6 ;
+                                   8=7 ; 9=8 ; 7=9 ; 10=10 ; else=NA")
+responses$C6_PrimCareResp <- car::recode(responses$C6_PrimCareResp, "1=1 ; 8=2 ; 9=3 ;10=4 ; 11=5 ; 12=6 ;
+                                   13=7 ; 14=8 ; else=NA")
+responses$D1_1_Barrier <- car::recode(responses$D1_1_Barrier,"13=1 ; 18=2 ; 14=3 ; 15=4 ; 16=5; else=NA")
+responses$D1_2_Barrier <- car::recode(responses$D1_2_Barrier,"13=1 ; 18=2 ; 14=3 ; 15=4 ; 16=5; else=NA")
+responses$D1_5_Barrier <- car::recode(responses$D1_5_Barrier,"13=1 ; 18=2 ; 14=3 ; 15=4 ; 16=5; else=NA")
+responses$D1_6_Barrier <- car::recode(responses$D1_6_Barrier,"13=1 ; 18=2 ; 14=3 ; 15=4 ; 16=5; else=NA")
+responses$D1_8_Barrier <- car::recode(responses$D1_8_Barrier,"13=1 ; 18=2 ; 14=3 ; 15=4 ; 16=5; else=NA")
+responses$E4_1_CarMgt <- car::recode(responses$E4_1_CarMgt,"1=1 ; 2=2 ; 3=3 ; 4=4 ; 6=5; else=NA")
+responses$E4_2_CarMgt <- car::recode(responses$E4_2_CarMgt,"1=1 ; 2=2 ; 3=3 ; 4=4 ; 6=5; else=NA")
+responses$E4_3_CarMgt <- car::recode(responses$E4_3_CarMgt,"1=1 ; 2=2 ; 3=3 ; 4=4 ; 6=5; else=NA")
+responses$F14a_1_CarSucc <- car::recode(responses$F14a_1_CarSucc,"1=1 ; 3=2 ; 4=3 ; 5=4 ; 6=5; 7=6; 8=7; else=NA")
+responses$F14a_2_CarSucc <- car::recode(responses$F14a_2_CarSucc,"1=1 ; 3=2 ; 4=3 ; 5=4 ; 6=5; 7=6; 8=7; else=NA")
+responses$F14a_3_CarSucc <- car::recode(responses$F14a_3_CarSucc,"1=1 ; 3=2 ; 4=3 ; 5=4 ; 6=5; 7=6; 8=7; else=NA")
+
 
 #### Check missing responses in integer vars ###
 numericvars <- responses[sapply(responses,is.numeric)]
 # Sum number of missing responses in each row.
 Missing <- apply(numericvars, 1, function(x) sum(is.na(x)))
 allvars <- bind_cols(responses, as.data.frame(Missing))
+
+# Create a numeric ID to help with creating scales later.
+allvars$ID <- c(1:length(allvars$ResponseID))
+
 # Note - bind_cols binds on position, not a key variable, but should
 # be safe here.
+
+# Following lines generate df containing only numeric varsfor Nazim; he
+# uses PLS which doesn't like character variables:
+WCA_Numeric <- allvars[sapply(allvars,is.numeric)]
+write.csv(WCA_Numeric, file = "WCA_Numeric.csv")
 
 # Following lines were to add Missing to numericvars for Nazim; he
 # uses PLS which doesn't like character variables:
 # WCA_Numeric <- bind_cols(numericvars, as.data.frame(Missing))
 # write.csv(WCA_Numeric, file = "WCA_Numeric.csv")
+
+
+```
+
+
+```{r ScaleConstruction, echo = FALSE}
+# Need to create scales for 5-pt and 7-pt scales separately or else
+# recoding won't work.
+
+keys.list_5 <- list(ID=c("ID"),
+                  C2_WLB = c("-C2_1_WLB", "C2_2_WLB", "-C2_3_WLB", "-C2_4_WLB", 
+                             "-C2_5_WLB"),
+                  D1_PersCirc = c("D1_1_Barrier", "D1_2_Barrier", "D1_5_Barrier",
+                                 "D1_6_Barrier", "D1_8_Barrier"),
+                  D2_Abilities = c("D2_1_Conf", "D2_2_SE", "D2_3_PubSpk", 
+                                   "D2_4_IntPers", "D2_5_IQ", "D2_6_PersEffic", 
+                                   "D2_7_PersEffect", "D2_8_Tech"),
+                  E1_CultFit = c("E1_1_CultFit", "E1_2_CultFit", "E1_3_CultFit",
+                                 "E1_4_CultFit","E1_5_CultFit", "E1_6_CultFit",
+                                 "E1_7_CultFit"),
+                  E2_Network = c("E2_1_Network", "E2_2_Network"),
+                  E3_Mentor = c("E3_1_Mentor", "E3_2_Mentor", "E3_3_Mentor",
+                                "E3_4_Mentor"),
+                  E4_CarMgt = c("E4_1_CarMgt", "E4_2_CarMgt", "E4_3_CarMgt"),
+                  E5_DevAsst = c("E5_1_DevAsst", "E5_2_DevAsst", "E5_3_DevAsst",
+                                 "E5_4_DevAsst", "E5_5_DevAsst", "E5_6_DevAsst",
+                                 "E5_7_DevAsst"),
+                  E6_GeoMob = c("E6_1_GeogMob", "E6_2_GeogMob", "E6_3_GeogMob"),
+                  F2_MngCar = c("F2_1_OwnCareer", "F2_2_OwnCareer", 
+                                "F2_3_OwnCareer", "F2_4_OwnCareer"),
+                  F3_Relships = c("F3_1_Relships", "F3_2_Relships", 
+                                  "F3_3_Relships", "F3_4_Relships"),
+                  F4_Mentor = c("F4_1_Mentor", "F4_2_Mentor", "F4_3_Mentor", 
+                                "F4_4_Mentor", "F4_5_Mentor", "F4_6_Mentor", 
+                                "F4_7_Mentor", "F4_8_Mentor"),
+                  F5_DevAss = c("F5_1_DevAss", "F5_2_DevAss", "F5_3_DevAss", 
+                                "F5_4_DevAss"),
+                  F6_ProcJust = c("F6_1_ProcJust", "-F6_2_ProcJust", 
+                                  "-F6_3_ProcJust", "F6_4_ProcJust", 
+                                  "F6_5_ProcJust"),
+                  F7_DistJust = c("F7_1_DistJust", "F7_2_DistJust", "F7_3_DistJust", 
+                                  "F7_4_DistJust", "F7_5_DistJust"),
+                  F8_Empower = c("F8_1_Empower", "F8_2_Empower", "F8_3_Empower", 
+                                 "F8_4_Empower"),
+                  F9_DevAss = c("F9_1_DevAss", "F9_2_DevAss", "F9_3_DevAss"),
+                  F10_Turnover = c("F10_1_Turnover", "F10_2_Turnover", 
+                                   "F10_3_Turnover", "F10_4_Turnover"),
+                  F11_JobSat = c("F11_1_JobSat", "F11_2_JobSat", "-F11_3_JobSat", 
+                                 "F11_4_JobSat", "-F11_5_JobSat"),
+                  F12_CareerSat =c("F12_1_CareerSat", "F12_2_CareerSat", 
+                                   "F12_3_CareerSat", "F12_4_CareerSat", 
+                                   "F12_5_CareerSat"),
+                  F13_LifeSat = c("F13_1_LifeSat", "F13_2_LifeSat", "F13_3_LifeSat", 
+                                  "F13_4_LifeSat", "F13_5_LifeSat"),
+                  F14a_CarSucc = c("F14a_1_CarSucc", "F14a_2_CarSucc", "F14a_3_CarSucc"),
+                  H1_OrgFacil =c("H1_1_OrgFacil", "H1_2_OrgFacil", "H1_3_OrgFacil", 
+                                 "H1_4_OrgFacil", "H1_5_OrgFacil", "H1_6_OrgFacil", 
+                                 "H1_7_OrgFacil")
+                  )
+itemsused_5 <- c("ID", "C2_1_WLB", "C2_2_WLB", "C2_3_WLB", "C2_4_WLB", "C2_5_WLB",
+                 "D1_1_Barrier", "D1_2_Barrier", "D1_5_Barrier", 
+                 "D1_6_Barrier", "D1_8_Barrier",
+                 "D2_1_Conf", "D2_2_SE", "D2_3_PubSpk",
+                 "D2_4_IntPers", "D2_5_IQ", "D2_6_PersEffic",
+                 "D2_7_PersEffect", "D2_8_Tech",
+                 "E1_1_CultFit", "E1_2_CultFit", "E1_3_CultFit", "E1_4_CultFit",
+                 "E1_5_CultFit", "E1_6_CultFit", "E1_7_CultFit", "E2_1_Network", 
+                 "E2_2_Network", "E3_1_Mentor", "E3_2_Mentor", "E3_3_Mentor", 
+                 "E3_4_Mentor", "E4_1_CarMgt", "E4_2_CarMgt", "E4_3_CarMgt", 
+                 "E5_1_DevAsst", "E5_2_DevAsst", "E5_3_DevAsst", "E5_4_DevAsst", 
+                 "E5_5_DevAsst", "E5_6_DevAsst", "E5_7_DevAsst", 
+                 "E6_1_GeogMob", "E6_2_GeogMob", "E6_3_GeogMob", 
+                 "F2_1_OwnCareer", "F2_2_OwnCareer", "F2_3_OwnCareer", 
+                 "F2_4_OwnCareer", "F3_1_Relships", "F3_2_Relships", 
+                 "F3_3_Relships", "F3_4_Relships", "F4_1_Mentor", "F4_2_Mentor", 
+                 "F4_3_Mentor", "F4_4_Mentor", "F4_5_Mentor", "F4_6_Mentor",
+                 "F4_7_Mentor", "F4_8_Mentor", "F5_1_DevAss", "F5_2_DevAss", 
+                 "F5_3_DevAss", "F5_4_DevAss", "F6_1_ProcJust", "F6_2_ProcJust", 
+                 "F6_3_ProcJust", "F6_4_ProcJust", "F6_5_ProcJust", "F7_1_DistJust", 
+                 "F7_2_DistJust", "F7_3_DistJust", "F7_4_DistJust", "F7_5_DistJust",
+                 "F8_1_Empower", "F8_2_Empower", "F8_3_Empower", "F8_4_Empower",
+                 "F9_1_DevAss", "F9_2_DevAss", "F9_3_DevAss",
+                 "F10_1_Turnover", "F10_2_Turnover", "F10_3_Turnover", "F10_4_Turnover",
+                 "F11_1_JobSat", "F11_2_JobSat", "F11_3_JobSat", "F11_4_JobSat", 
+                 "F11_5_JobSat", "F12_1_CareerSat", "F12_2_CareerSat", 
+                 "F12_3_CareerSat", "F12_4_CareerSat", "F12_5_CareerSat",
+                 "F13_1_LifeSat", "F13_2_LifeSat", "F13_3_LifeSat", "F13_4_LifeSat", 
+                 "F13_5_LifeSat", "F14a_1_CarSucc", "F14a_2_CarSucc", "F14a_3_CarSucc",
+                 "H1_1_OrgFacil", "H1_2_OrgFacil", "H1_3_OrgFacil", "H1_4_OrgFacil", 
+                 "H1_5_OrgFacil", "H1_6_OrgFacil", "H1_7_OrgFacil"
+                 )
+subset_allvars_5 <- allvars %>% dplyr::select(one_of(itemsused_5))
+scores_5 <- scoreItems(keys.list_5, subset_allvars_5, impute="none", min=1, max=5, digits = 2)
+# add the new scale scores to allvars using dplyr::left_join, matching by ID.
+allvars <- dplyr::left_join(allvars, as.data.frame(scores_5$scores), by = "ID")
+
+keys.list_7 <- list(ID=c("ID"), 
+                    D3_CareerSE = c("D3_1_Decn", "D3_2_Grow", "D3_4_Chall"))
+itemsused_7 <- c("ID", "D3_1_Decn", "D3_2_Grow", "D3_4_Chall")
+subset_allvars_7 <- allvars %>% dplyr::select(one_of(itemsused_7))
+scores_7 <- scoreItems(keys.list_7, subset_allvars_7, impute="none", min=1, max=5, digits = 2)
+# add the new scale scores to allvars using dplyr::left_join, matching by ID.
+allvars <- dplyr::left_join(allvars, as.data.frame(scores_7$scores), by = "ID")
+
+############ Print off reliabilities etc. ####################
+#
+#      Can comment out this code when not required           #
+
+# sink("Scale psychometrics.txt")
+# scores_7$alpha
+# scores_7$n.items
+# scores_7$corrected
+# scores_5$alpha
+# scores_5$n.items
+# scores_5$corrected
+# sink()
+```
+
+
+
 ```
 
 ## Missing data
@@ -196,12 +347,12 @@ ggplot(allvars, aes(Missing)) + geom_histogram(binwidth = 1)
 
 Total sample boxplots for Question C1:
 C1 How would you rate the importance of the following to you?(0 - Not at all important; 100 - Extremely important)
-______ Career/ Job (1)
-______ Family/ Household (2)
-______ Lifestyle/ Leisure (e.g., sport, church) (3)
+1. ______ Career/ Job (1)
+2. ______ Family/ Household (2)
+3. ______ Lifestyle/ Leisure (e.g., sport, church) (3)
 
 ```{r C_1, echo=FALSE}
-boxplot(allvars$C1_1_ImpJob,allvars$C1_2_ImpFam, allvars$C1_3_ImpLife, 
+boxplot(allvars$C1_1_ImpJob,allvars$C1_2_ImpFam, allvars$C1_3_ImpLife, notch = TRUE, 
         names = c("Job", "Family", "Life"))
 ```
 
