@@ -6,7 +6,8 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE, echo=FALSE}
-knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, fig.width = 4, fig.height = 4)
+library(knitr)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, fig.width = 3.5, fig.height = 3.5)
 ```
 
 ```{r DataCleaning, echo = FALSE}
@@ -166,8 +167,10 @@ responses <- fulldata %>%
         select(-ends_with("H1_8_OrgFacil")) %>% 
         filter(ResponseID != "R_3GvvOBTj4XHfyeM") %>% 
         filter(ResponseID != "R_RKpGHXWPmVQx3Sp") %>% 
-        filter(ResponseID != "R_2sbE1CxaFo6uCCG")
-# Invalid responses dropped with filter
+        filter(ResponseID != "R_2sbE1CxaFo6uCCG") %>% 
+        mutate(TotDeps = Deps0_5 + Deps5_10 + Deps11_18 + Deps19_30 + 
+                       DepsOther)
+
 
 # Recode weird values in items - editing changes to Qualtrics survey
 # means that some scales had gaps (e.g., 1-4, 6 instead of 1-5)
@@ -207,12 +210,7 @@ allvars$ID <- c(1:length(allvars$ResponseID))
 
 # Following lines generate df containing only numeric varsfor Nazim; he
 # uses PLS which doesn't like character variables:
-WCA_Numeric <- allvars[sapply(allvars,is.numeric)]
-write.csv(WCA_Numeric, file = "WCA_Numeric.csv")
-
-# Following lines were to add Missing to numericvars for Nazim; he
-# uses PLS which doesn't like character variables:
-# WCA_Numeric <- bind_cols(numericvars, as.data.frame(Missing))
+# WCA_Numeric <- allvars[sapply(allvars,is.numeric)]
 # write.csv(WCA_Numeric, file = "WCA_Numeric.csv")
 
 
@@ -343,7 +341,7 @@ Leaving aside optional questions (e.g., open text responses), this plot shows th
 ggplot(allvars, aes(Missing)) + geom_histogram(binwidth = 1)
 ```
 
-## Importance of job, family, life/leisure
+## Q2 Importance of job, family, life/leisure
 
 Total sample boxplots for Question C1:
 C1 How would you rate the importance of the following to you?(0 - Not at all important; 100 - Extremely important)
@@ -352,18 +350,18 @@ C1 How would you rate the importance of the following to you?(0 - Not at all imp
 3. ______ Lifestyle/ Leisure (e.g., sport, church) (3)
 
 ```{r C_1, echo=FALSE}
-boxplot(allvars$C1_1_ImpJob,allvars$C1_2_ImpFam, allvars$C1_3_ImpLife, notch = TRUE, 
+boxplot(allvars$C1_1_ImpJob,allvars$C1_2_ImpFam, allvars$C1_3_ImpLife, notch = T, 
         names = c("Job", "Family", "Life"))
 ```
 
-### Importance of job by demographics
+### Q2 Importance of job by demographics
 
 Following boxplots show ratings of job importance according to marital status:  1. (Married/Partnered)
 2. (Single)
 3. (Other)
 
 ```{r, echo=FALSE}
-ggplot(allvars, aes(Marital, C1_1_ImpJob)) + geom_boxplot(aes(group = factor(Marital)))
+ggplot(allvars, aes(Marital, C1_1_ImpJob)) + geom_boxplot(aes(group = factor(Marital)), notch = F)
 ```
 
 Following boxplots show ratings of job importance according to ethnicity:  
@@ -376,7 +374,7 @@ Following boxplots show ratings of job importance according to ethnicity:
 
 
 ```{r, echo=FALSE}
-ggplot(allvars, aes(Ethnic, C1_1_ImpJob)) + geom_boxplot(aes(group = factor(Ethnic)))
+ggplot(allvars, aes(Ethnic, C1_1_ImpJob)) + geom_boxplot(aes(group = factor(Ethnic)), notch = F)
 ```
 
 Following boxplots show ratings of job importance according to age group:  
@@ -389,7 +387,7 @@ Following boxplots show ratings of job importance according to age group:
 
 
 ```{r, echo=FALSE}
-ggplot(allvars, aes(Age, C1_1_ImpJob)) + geom_boxplot(aes(group = factor(Age)))
+ggplot(allvars, aes(Age, C1_1_ImpJob)) + geom_boxplot(aes(group = factor(Age)), notch = F)
 ```
 
 Following boxplots show ratings of job importance according to job status:  
@@ -400,18 +398,18 @@ Following boxplots show ratings of job importance according to job status:
 
 
 ```{r, echo=FALSE}
-ggplot(allvars, aes(JobStatus, C1_1_ImpJob)) + geom_boxplot(aes(group = factor(JobStatus)))
+ggplot(allvars, aes(JobStatus, C1_1_ImpJob)) + geom_boxplot(aes(group = factor(JobStatus)), notch = F)
 ```
 
 
-### Importance of family by demographics
+### Q2 Importance of family by demographics
 
 Following boxplots show ratings of family importance according to marital status:  1. (Married/Partnered)
 2. (Single)
 3. (Other)
 
 ```{r, echo=FALSE}
-ggplot(allvars, aes(Marital, C1_2_ImpFam)) + geom_boxplot(aes(group = factor(Marital)))
+ggplot(allvars, aes(Marital, C1_2_ImpFam)) + geom_boxplot(aes(group = factor(Marital)), notch = F)
 ```
 
 Following boxplots show ratings of family importance according to ethnicity:  
@@ -424,7 +422,7 @@ Following boxplots show ratings of family importance according to ethnicity:
 
 
 ```{r, echo=FALSE}
-ggplot(allvars, aes(Ethnic, C1_2_ImpFam)) + geom_boxplot(aes(group = factor(Ethnic)))
+ggplot(allvars, aes(Ethnic, C1_2_ImpFam)) + geom_boxplot(aes(group = factor(Ethnic)), notch = F)
 ```
 
 Following boxplots show ratings of family importance according to age group:  
@@ -437,7 +435,7 @@ Following boxplots show ratings of family importance according to age group:
 
 
 ```{r, echo=FALSE}
-ggplot(allvars, aes(Age, C1_2_ImpFam)) + geom_boxplot(aes(group = factor(Age)))
+ggplot(allvars, aes(Age, C1_2_ImpFam)) + geom_boxplot(aes(group = factor(Age)), notch = F)
 ```
 
 Following boxplots show ratings of family importance according to job status:  
@@ -448,17 +446,17 @@ Following boxplots show ratings of family importance according to job status:
 
 
 ```{r, echo=FALSE}
-ggplot(allvars, aes(JobStatus, C1_2_ImpFam)) + geom_boxplot(aes(group = factor(JobStatus)))
+ggplot(allvars, aes(JobStatus, C1_2_ImpFam)) + geom_boxplot(aes(group = factor(JobStatus)), notch = F)
 ```
 
-### Importance of life/leisure by demographics
+### Q2 Importance of life/leisure by demographics
 
 Following boxplots show ratings of life/leisure importance according to marital status:  1. (Married/Partnered)
 2. (Single)
 3. (Other)
 
 ```{r, echo=FALSE}
-ggplot(allvars, aes(Marital, C1_3_ImpLife)) + geom_boxplot(aes(group = factor(Marital)))
+ggplot(allvars, aes(Marital, C1_3_ImpLife)) + geom_boxplot(aes(group = factor(Marital)), notch = F)
 ```
 
 Following boxplots show ratings of life/leisure importance according to ethnicity:  
@@ -471,7 +469,7 @@ Following boxplots show ratings of life/leisure importance according to ethnicit
 
 
 ```{r, echo=FALSE}
-ggplot(allvars, aes(Ethnic, C1_3_ImpLife)) + geom_boxplot(aes(group = factor(Ethnic)))
+ggplot(allvars, aes(Ethnic, C1_3_ImpLife)) + geom_boxplot(aes(group = factor(Ethnic)), notch = F)
 ```
 
 Following boxplots show ratings of life/leisure importance according to age group:  
@@ -484,7 +482,7 @@ Following boxplots show ratings of life/leisure importance according to age grou
 
 
 ```{r, echo=FALSE}
-ggplot(allvars, aes(Age, C1_3_ImpLife)) + geom_boxplot(aes(group = factor(Age)))
+ggplot(allvars, aes(Age, C1_3_ImpLife)) + geom_boxplot(aes(group = factor(Age)), notch = F)
 ```
 
 Following boxplots show ratings of life/leisure importance according to job status:  
@@ -495,5 +493,161 @@ Following boxplots show ratings of life/leisure importance according to job stat
 
 
 ```{r, echo=FALSE}
-ggplot(allvars, aes(JobStatus, C1_3_ImpLife)) + geom_boxplot(aes(group = factor(JobStatus)))
+ggplot(allvars, aes(JobStatus, C1_3_ImpLife)) + geom_boxplot(aes(group = factor(JobStatus)), notch = F)
 ```
+
+### Number of dependents
+Apart from one respondent with 8 dependents, the total number of dependents reported 
+ranged from 0 to 5, with the following frequencies (0 to 5, and 8 dependents respectively):
+ ```{r, echo = FALSE}
+table(allvars$TotDeps)
+```
+
+ 
+ ```{r, echo=FALSE}
+ ggplot(allvars, aes(TotDeps)) + geom_histogram(binwidth = 1)
+ ```
+
+## Job, Career, and Life Satisfaction
+
+### Job Satisfaction by Seniority
+
+1. Directorship/board member (1)
+2. Executive management (2)
+3. Senior management (3)
+4. Middle management (4)
+5. First-level management (5)
+6. Supervisory level (6)
+7. Other
+8. No management/supervision responsibility (8)
+
+```{r, echo=FALSE}
+ggplot(allvars, aes(Seniority, F11_JobSat)) + geom_boxplot(aes(group = factor(Seniority)), notch = T)
+```
+
+### Career Satisfaction by Seniority
+
+```{r, echo=FALSE}
+ggplot(allvars, aes(Seniority, F12_CareerSat)) + geom_boxplot(aes(group = factor(Seniority)), notch = T)
+```
+
+### Job Satisfaction by Education
+
+1. PhD (1)
+2. Master's degree (2)
+3. Postgraduate diploma/ certificate (3)
+4. Bachelor's degree (4)
+5. Diploma/certificate (5)
+6. High school qualification(s) (6)
+7. Other
+
+```{r, echo=FALSE}
+ggplot(allvars, aes(Educ, F11_JobSat)) + geom_boxplot(aes(group = factor(Educ)), notch = F)
+```
+
+### Career Satisfaction by Education
+
+```{r, echo=FALSE}
+ggplot(allvars, aes(Educ, F12_CareerSat)) + geom_boxplot(aes(group = factor(Educ)), notch = F)
+```
+ 
+ 
+## Predictors of Turnover Intentions
+ 
+```{r, echo=FALSE}
+ reg1 <- lm(F10_Turnover ~ E1_CultFit + E2_Network + E3_Mentor + E4_CarMgt +
+ E5_DevAsst + E6_GeoMob, allvars)
+```
+ 
+Turnover intentions are related to perceived barriers to advancement (Section E) 
+as follows. Hierarchical regresssion (e.g,. adding in controls like age and 
+education) probably needed to get a more accurate picture. 
+ 
+ 
+```{r kable, echo = FALSE}
+ reg1 <- lm(F10_Turnover ~ E1_CultFit + E2_Network + E3_Mentor + E4_CarMgt +
+ E5_DevAsst + E6_GeoMob, allvars)
+kable(summary(reg1)$coef, digits=2)
+```
+ 
+## Correlations between turnover and E1 to E6
+ 
+First table shows correlation, second table shows p value.
+ 
+```{r, echo = FALSE}
+ tover1 <- allvars %>% select(one_of(c("E1_CultFit", "E2_Network", "E3_Mentor" , 
+                                   "E4_CarMgt", "E5_DevAsst", "E6_GeoMob", "F10_Turnover")))
+cout1 <- corr.test(tover1)
+kable(cout1$r, digits=2)
+kable(cout1$p, digits=3)
+```
+
+## Correlations between turnover and F2 to F9
+ 
+Turnover intentions are related to perceived facilitators of advancement 
+(Section F, items F2 to F9) 
+as follows. Hierarchical regresssion (e.g,. adding in controls like age and 
+education) probably needed to get a more accurate picture. 
+
+ 
+```{r, echo = FALSE}
+ reg2 <- lm(F10_Turnover ~ F2_MngCar + F3_Relships + F4_Mentor + F5_DevAss +
+ F6_ProcJust + F7_DistJust + F8_Empower + F9_DevAss, allvars)
+kable(summary(reg2)$coef, digits=2)
+```
+ 
+## Correlations between turnover and F2 to F9
+  
+First table shows correlation, second table shows p value.
+  
+```{r, echo = FALSE}
+ tover2 <- allvars %>% select(one_of(c("F2_MngCar", "F3_Relships", "F4_Mentor" , 
+                                   "F5_DevAss", "F6_ProcJust", "F7_DistJust", 
+                                   "F8_Empower", "F9_DevAss", "F10_Turnover")))
+cout2 <- corr.test(tover2)
+kable(cout2$r, digits=2)
+kable(cout2$p, digits=3)
+```
+
+
+## Career Satisfaction regressed on perceptions (Section D)
+  
+```{r, echo = FALSE}
+reg3 <- lm(F12_CareerSat ~ D1_PersCirc + D2_Abilities + D3_CareerSE, allvars)
+kable(summary(reg3)$coef, digits=2)
+```
+
+### Playing with more graphs
+## Show relationship between Turnover and Distrib Justice
+
+```{r, echo=FALSE, fig.width = 4.5, fig.height = 4.5}
+ggplot(allvars, aes(F7_DistJust, F10_Turnover)) + geom_point() + geom_smooth()
+```
+
+
+```{r, echo=FALSE, fig.width = 4.5, fig.height = 4.5}
+with(allvars, 
+smoothScatter(F7_DistJust, F10_Turnover, main="smoothScatter Kabacoff p. 262"))
+```
+
+```{r, echo=FALSE, fig.width = 4.5, fig.height = 4.5}
+ggplot(allvars, aes(D3_CareerSE, F10_Turnover)) + geom_point() + geom_smooth()
+```
+
+
+```{r, echo=FALSE, fig.width = 4.5, fig.height = 4.5}
+with(allvars, 
+smoothScatter(D3_CareerSE, F10_Turnover, main="smoothScatter Kabacoff p. 262"))
+```
+
+
+```{r, echo=FALSE, fig.width = 4.5, fig.height = 4.5}
+ggplot(allvars, aes(D1_PersCirc, F12_CareerSat)) + geom_point() + geom_smooth()
+```
+
+
+```{r, echo=FALSE, fig.width = 4.5, fig.height = 4.5}
+with(allvars, 
+smoothScatter(D1_PersCirc, F12_CareerSat, main="smoothScatter Kabacoff p. 262"))
+```
+
