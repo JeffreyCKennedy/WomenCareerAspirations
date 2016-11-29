@@ -2,7 +2,7 @@
 title: "Womens Career Aspirations"
 author: "Jeff Kennedy"
 date: "23 November 2016"
-output: html_document
+output: word_document
 ---
 
 ```{r setup, include=FALSE, echo=FALSE}
@@ -40,6 +40,7 @@ library(readr)
 library(ggplot2)
 library(psych)   # Creating scales and calculating reliability and other descriptives.
 library(car)     # Used for the recode function.
+library(scales)
 
 # read_CSV in readr is better than R's built-in read.csv function; see Peng
 # msdr.pdf p. 14.
@@ -316,6 +317,113 @@ scores_7 <- scoreItems(keys.list_7, subset_allvars_7, impute="none", min=1, max=
 # add the new scale scores to allvars using dplyr::left_join, matching by ID.
 allvars <- dplyr::left_join(allvars, as.data.frame(scores_7$scores), by = "ID")
 
+
+
+### Create factor variables from ethnic, marital, etc ###
+allvars$Marital_f <- as.factor(allvars$Marital)
+levels(allvars$Marital_f) <- c("Married", "Single", "Other")
+# A1 Marital status?
+#  Married/ Partnered (1)
+#  Single (2)
+#  Other (3)
+
+
+allvars$Ethnic_f <- as.factor(allvars$Ethnic)
+levels(allvars$Ethnic_f) <- c("NZ European", "Maori", "Asian", "Pacific", "ME.LA.A", "Other")
+# B3 Ethnic origin (main)?
+#  (NZ) European (1)
+#  Maori (2)
+#  Asian (3)
+#  Pacific peoples (4)
+#  Middle Eastern/ Latin American/African (5)
+#  Other (please specify) (6) ____________________
+
+allvars$JobStatus_f <- as.factor(allvars$JobStatus)
+levels(allvars$JobStatus_f) <- c("Permanent", "Temp.Contract", "Self-employed", "Other")
+# A4 Job status?
+#  Permanent (1)
+#  Temporary/short contract (2)
+#  Self-employed (3)
+#  Other (please specify) (4) ____________________
+
+allvars$Seniority_f <- as.factor(allvars$Seniority)
+levels(allvars$Seniority_f) <- c("Director", "ExecMgt", "SnrMgt", "MidMgt", "1stLvlMgt", "Super", "Other", "None")
+# B2 Seniority?
+#  Directorship/board member (1)
+#  Executive management (2)
+#  Senior management (3)
+#  Middle management (4)
+#  First-level management (5)
+#  Supervisory level (6)
+#  Other (please specify) (7) ____________________
+#  No management/supervision responsibility (8)
+
+allvars$Age_f <- as.factor(allvars$Age)
+levels(allvars$Age_f) <- c("15-24", "25-34", "35-44", "45-54", "55-64", "65+")
+# A2 What is your age group?
+#  15 - 24 years (1)
+#  25 - 34 years (2)
+#  35 - 44 years (3)
+#  45 - 54 years (4)
+#  55 - 64 years (5)
+#  65 years and over (6)
+
+
+
+allvars$Educ_f <- as.factor(allvars$Educ)
+levels(allvars$Educ_f) <- c("PhD", "Masters", "PG Dip", "Bachelor", "Dip/Cert", "High School", "Other")
+# B6 What is your highest education qualification?
+#  PhD (1)
+#  Master's degree (2)
+#  Postgraduate diploma/ certificate (3)
+#  Bachelor's degree (4)
+#  Diploma/certificate (5)
+#  High school qualification(s) (6)
+#  Other (please specify) (7) ____________________
+
+
+
+allvars$C6_PrimCareResp_f <- as.factor(allvars$C6_PrimCareResp)
+levels(allvars$C6_PrimCareResp_f) <- c("Spouse", "Other Family", "Paid Care", "Friends", "Other", "It Depends", "Equal Share", "Me")
+# C6 Who is primarily responsible for caring roles? (please select one)
+#  Spouse/partner (1)
+#  Other family member (8)
+#  Paid care/professional (e.g. childminder, nurse) (9)
+#  Friend(s) (10)
+#  Other (please specify) (11) ____________________
+#  It depends (please comment further) (12) ____________________
+#  Roles/tasks are shared equally (13)
+#  Me (14)
+
+
+allvars$C7_PrimRespHHold_f <- as.factor(allvars$C7_PrimRespHHold)
+# Note: noone answered '4' so leave out 'Friends' level
+levels(allvars$C7_PrimRespHHold_f) <- c("Spouse", "Other Family", "Paid Care", "Other", "It Depends", "Equal Share", "Me")
+# C7 Who is primarily responsible for household tasks/chores? (please tick one)
+#  Spouse/partner (1)
+#  Other family member (2)
+#  Paid care/professional (e.g. cleaner) (3)
+#  Friend(s) (4)
+#  Other (please specify) (5) ____________________
+#  It depends (please comment further) (6) ____________________
+#  Roles/tasks are shared equally (7)
+#  Me (8)
+
+
+allvars$TotSal_f <- as.factor(allvars$TotSal)
+levels(allvars$TotSal_f) <- c("Under $30k", "$30k-$50k", "$50k-$80k", "$80k-$100k", "$100k-$250k", "$250k-$500k", "Over $500k")
+# B7 What is your total salary (including all benefits)?
+#  Under $30,000 (1)
+#  $30,001 - $50,000 (2)
+#  $50,001 - $80,000 (3)
+#  $80,001 to $100,000 (4)
+#  $100,001 to $250,000 (5)
+#  $250,001 to $500,000 (6)
+#  Over $500,000 (7)
+# TotSal
+
+
+
 ############ Print off reliabilities etc. ####################
 #
 #      Can comment out this code when not required           #
@@ -361,7 +469,7 @@ Following boxplots show ratings of job importance according to marital status:  
 3. (Other)
 
 ```{r, echo=FALSE}
-ggplot(allvars, aes(Marital, C1_1_ImpJob)) + geom_boxplot(aes(group = factor(Marital)), notch = F)
+ggplot(allvars, aes(Marital_f, C1_1_ImpJob)) + geom_boxplot(aes(group = Marital_f), notch = F)
 ```
 
 Following boxplots show ratings of job importance according to ethnicity:  
@@ -374,7 +482,7 @@ Following boxplots show ratings of job importance according to ethnicity:
 
 
 ```{r, echo=FALSE}
-ggplot(allvars, aes(Ethnic, C1_1_ImpJob)) + geom_boxplot(aes(group = factor(Ethnic)), notch = F)
+ggplot(allvars, aes(Ethnic_f, C1_1_ImpJob)) + geom_boxplot(aes(group = Ethnic_f), notch = F)
 ```
 
 Following boxplots show ratings of job importance according to age group:  
@@ -398,7 +506,7 @@ Following boxplots show ratings of job importance according to job status:
 
 
 ```{r, echo=FALSE}
-ggplot(allvars, aes(JobStatus, C1_1_ImpJob)) + geom_boxplot(aes(group = factor(JobStatus)), notch = F)
+ggplot(allvars, aes(JobStatus_f, C1_1_ImpJob)) + geom_boxplot(aes(group = JobStatus_f), notch = F)
 ```
 
 
@@ -553,18 +661,13 @@ ggplot(allvars, aes(Educ, F12_CareerSat)) + geom_boxplot(aes(group = factor(Educ
  
  
 ## Predictors of Turnover Intentions
- 
-```{r, echo=FALSE}
- reg1 <- lm(F10_Turnover ~ E1_CultFit + E2_Network + E3_Mentor + E4_CarMgt +
- E5_DevAsst + E6_GeoMob, allvars)
-```
- 
+
 Turnover intentions are related to perceived barriers to advancement (Section E) 
 as follows. Hierarchical regresssion (e.g,. adding in controls like age and 
 education) probably needed to get a more accurate picture. 
  
  
-```{r kable, echo = FALSE}
+```{r, echo = FALSE}
  reg1 <- lm(F10_Turnover ~ E1_CultFit + E2_Network + E3_Mentor + E4_CarMgt +
  E5_DevAsst + E6_GeoMob, allvars)
 kable(summary(reg1)$coef, digits=2)
@@ -601,7 +704,7 @@ kable(summary(reg2)$coef, digits=2)
 First table shows correlation, second table shows p value.
   
 ```{r, echo = FALSE}
- tover2 <- allvars %>% select(one_of(c("F2_MngCar", "F3_Relships", "F4_Mentor" , 
+tover2 <- allvars %>% select(one_of(c("F2_MngCar", "F3_Relships", "F4_Mentor" , 
                                    "F5_DevAss", "F6_ProcJust", "F7_DistJust", 
                                    "F8_Empower", "F9_DevAss", "F10_Turnover")))
 cout2 <- corr.test(tover2)
@@ -651,3 +754,111 @@ with(allvars,
 smoothScatter(D1_PersCirc, F12_CareerSat, main="smoothScatter Kabacoff p. 262"))
 ```
 
+## More graphs, using ggplot
+
+```{r, echo=FALSE}
+allvars %>% filter(Marital %in% c(1, 2)) %>% 
+        ggplot(aes(C1_1_ImpJob, fill = factor(TotDeps))) + 
+        geom_histogram(binwidth = 10) +
+        facet_wrap(~Marital_f, ncol = 1) +
+        xlab("Importance of Job for Married and Single")
+
+allvars %>% filter(Marital %in% c(1, 2)) %>% 
+        ggplot(aes(C1_2_ImpFam, fill = factor(TotDeps))) + 
+        geom_histogram(binwidth = 10) +
+        facet_wrap(~Marital_f, ncol = 1) +
+        xlab("Importance of Family for Married and Single")
+
+allvars %>% filter(Marital %in% c(1, 2)) %>% 
+        ggplot(aes(C1_3_ImpLife, fill = factor(TotDeps))) + 
+        geom_histogram(binwidth = 10) +
+        facet_wrap(~Marital_f, ncol = 1) +
+        xlab("Importance of Life/Leisure for Married and Single")
+
+allvars %>% filter(Marital_f %in% c("Married", "Single")) %>% 
+        ggplot(aes(Seniority, group = Seniority_f)) + 
+        geom_histogram(binwidth = 1) +
+        facet_wrap(~Marital_f, ncol = 1) +
+        xlab("Seniority")
+
+ggplot(allvars, aes(F10_Turnover, fill = Seniority_f)) + 
+        geom_histogram(binwidth = 1) +
+        xlab("Turnover Intention")
+
+## Following two graphs use geom_text to label the bars with counts.
+## Could also do percent.
+
+allvars %>% filter(!is.na(Age_f)) %>% 
+        ggplot(aes(Age_f), fill = "steelblue") +
+        geom_bar(stat = "count", fill = "steelblue") +
+        xlab("Age Distribution") +
+        ylab("Frequency") +
+        geom_text(aes(label = ..count..), stat = "count", vjust=1.6, color="white", size=3.5)
+        
+allvars %>% filter(!is.na(Age_f)) %>% 
+        ggplot(aes(Age_f), fill = "steelblue") +
+        geom_bar(stat = "count", fill = "steelblue") +
+        xlab("Age Distribution") +
+        ylab("Frequency") +
+        geom_text(aes(label = ..count..), stat= "count", vjust = -.5)
+        
+allvars %>% filter(!is.na(Ethnic_f)) %>% 
+        ggplot(aes(Ethnic_f), fill = "steelblue") +
+        geom_bar(stat = "count", fill = "steelblue") +
+        xlab("Ethnicity") +
+        ylab("Frequency") +
+        geom_text(aes(label = ..count..), stat= "count", vjust = -.5)
+
+```
+
+## Following tables summarise percentages in demographic categories:
+
+```{r, echo=FALSE}
+# Create tables of percentages of demographics
+
+MaritalSum <- allvars %>% filter(!is.na(Marital_f)) %>%
+        group_by(Marital_f) %>% 
+        summarise(n(), pct = round(100*(n()/sum(!is.na(allvars$Marital_f))),1))
+knitr::kable(MaritalSum, col.names = c("Marital Status", "N", "Pct"))
+
+EthnicSum <- allvars %>% filter(!is.na(Ethnic_f)) %>%
+        group_by(Ethnic_f) %>% 
+        summarise(n(), pct = round(100*(n()/sum(!is.na(allvars$Ethnic_f))),1))
+knitr::kable(EthnicSum, col.names = c("Ethnicity", "N", "Pct"))
+
+JobStatusSum <- allvars %>% filter(!is.na(JobStatus_f)) %>%
+        group_by(JobStatus_f) %>% 
+        summarise(n(), pct = round(100*(n()/sum(!is.na(allvars$JobStatus_f))),1))
+knitr::kable(JobStatusSum, col.names = c("Job Status", "N", "Pct"))
+
+SenioritySum <- allvars %>% filter(!is.na(Seniority_f)) %>%
+        group_by(Seniority_f) %>% 
+        summarise(n(), pct = round(100*(n()/sum(!is.na(allvars$Seniority_f))),1))
+knitr::kable(SenioritySum, col.names = c("Job Seniority", "N", "Pct"))
+
+AgeSum <- allvars %>% filter(!is.na(Age_f)) %>%
+        group_by(Age_f) %>% 
+        summarise(n(), pct = round(100*(n()/sum(!is.na(allvars$Age_f))),1))
+knitr::kable(AgeSum, col.names = c("Age Range", "N", "Pct"))
+
+EducSum <- allvars %>% filter(!is.na(Educ_f)) %>%
+        group_by(Educ_f) %>% 
+        summarise(n(), pct = round(100*(n()/sum(!is.na(allvars$Educ_f))),1))
+knitr::kable(EducSum, col.names = c("Education", "N", "Pct"))
+
+C6_PrimCareRespSum <- allvars %>% filter(!is.na(C6_PrimCareResp_f)) %>%
+        group_by(C6_PrimCareResp_f) %>% 
+        summarise(n(), pct = round(100*(n()/sum(!is.na(allvars$C6_PrimCareResp_f))),1))
+knitr::kable(C6_PrimCareRespSum, col.names = c("Primary Carer", "N", "Pct"))
+
+C7_PrimRespHHoldSum <- allvars %>% filter(!is.na(C7_PrimRespHHold_f)) %>%
+        group_by(C7_PrimRespHHold_f) %>% 
+        summarise(n(), pct = round(100*(n()/sum(!is.na(allvars$C7_PrimRespHHold_f))),1))
+knitr::kable(C7_PrimRespHHoldSum, col.names = c("Primary Household", "N", "Pct"))
+
+TotSalSum <- allvars %>% filter(!is.na(TotSal_f)) %>%
+        group_by(TotSal_f) %>% 
+        summarise(n(), pct = round(100*(n()/sum(!is.na(allvars$TotSal_f))),1))
+knitr::kable(TotSalSum, col.names = c("Salary Range", "N", "Pct"))
+
+```
