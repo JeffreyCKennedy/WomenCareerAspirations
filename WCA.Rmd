@@ -40,7 +40,7 @@ library(readr)
 library(ggplot2)
 library(psych)   # Creating scales and calculating reliability and other descriptives.
 library(car)     # Used for the recode function.
-library(scales)
+library(lubridate)
 
 # read_CSV in readr is better than R's built-in read.csv function; see Peng
 # msdr.pdf p. 14.
@@ -170,7 +170,8 @@ responses <- fulldata %>%
         filter(ResponseID != "R_RKpGHXWPmVQx3Sp") %>% 
         filter(ResponseID != "R_2sbE1CxaFo6uCCG") %>% 
         mutate(TotDeps = Deps0_5 + Deps5_10 + Deps11_18 + Deps19_30 + 
-                       DepsOther)
+                       DepsOther) %>% 
+        mutate(MinsTaken = (interval(StartDate, EndDate)) / dminutes(1))
 
 
 # Recode weird values in items - editing changes to Qualtrics survey
@@ -862,3 +863,34 @@ TotSalSum <- allvars %>% filter(!is.na(TotSal_f)) %>%
 knitr::kable(TotSalSum, col.names = c("Salary Range", "N", "Pct"))
 
 ```
+
+### Response Times
+26 respondents spent less than 1 minute on the survey, and 138 people spent 10 minutes or less. 
+Longest time taken was a little over 200 hours.
+
+```{r, echo=FALSE}
+# Work out distribution of response times
+
+ShortTime <- allvars %>% 
+        select(ResponseID, Source, Missing, MinsTaken) %>% 
+        arrange(MinsTaken) %>% 
+        filter(MinsTaken <= 30) 
+# Change value in filter to get shorter/longer times
+
+summary(ShortTime$Missing)
+ggplot(ShortTime, aes(MinsTaken)) +
+        geom_histogram()
+
+fast <- ShortTime$ResponseID
+# Can use fast to filter responses nature of responses.
+testx <- allvars %>% filter(ResponseID %in% fast)
+mean(testx$Age, na.rm = TRUE)
+mean(allvars$Age, na.rm = TRUE)
+
+# glimpse(allvars %>% filter(ResponseID %in% fast))
+
+ggplot(ShortTime, aes(MinsTaken, Missing)) +
+        geom_point() +
+        geom_smooth(method=lm)
+```
+
